@@ -1,95 +1,116 @@
-### league-eda
+# league-eda
 This is a project for DSC80 at UCSD
-
+---
 ## Introduction and Question Identification
 
-Introduction: 
+### Introduction : 
+This dataset contains professional leagues matches from the year 2022. For each game, there are 10 rows representing 10 players and 2 rows representing 2 teams. And there are various columns for statistic of each game such as goldat10, dragon, assistsat10, etc.
 
-Question: I personally have harder time playing on the Red side (Upper right) than on the Blue side (Lower left) because of the difference in the spot on a minotor you should focus on. Will this be true for others? To test this statistically, does the side have an effect on difference in golds of each side at 10 minutes and 15 minutes since a game starts?
+### Question: 
+I personally have harder time playing on the Red side (upper right) than on the Blue side (lower left) because of the difference in perspective. Will this be true for professional players? To test this statistically, does the side have an effect on difference in golds of each side at 10 minutes since a game starts?
 
-Why should care about the dataset and the question?:
+### Why should you care about the question?
+It is because side shouldn't affect fairness of a game by resulting difference in gold amount.
 
-Num of rows: 149,400 rows
+### Num of rows
+149,400 rows
 
-names of the columns that are relevant: gameid, result, side, golddiffat10, golddiffat15, csdiffat10, csdiffat15
+### Relevant columns: 
+gameid, result, side, golddiffat10, golddiffat15
 
-descriptions of the relevant columns:
+### Descriptions of each column:
 - gameid: unique id for each game
 - result: whether a team win or not, 0 for lose and 1 for win
 - side: blue or red, blue for lower left and red for upper right
-- golddiffat10: goldat10 - opp_goldat10, self - opponent goldat10, 10 minutes since game start
-- golddiffat15: same as above but 15 minutes
-- csdiffat10: csat10 - opp_csat10, same idea as above but with cs (number of minions killed)
-- csdiffat15: same as above
+- golddiffat10: goldat10 - opp_goldat10 (=self - opponent goldat10), 10 signifies 10 minutes since game starts
+- golddiffat15: same as above but 15 minutes since game starts
 
+## Cleaning and EDA
 
-## Data Cleaning
+### Data Cleaning
 
-| gameid                | result   | side   |   golddiffat10 |   golddiffat15 |   csdiffat10 |   csdiffat15 |
-|:----------------------|:---------|:-------|---------------:|---------------:|-------------:|-------------:|
-| ESPORTSTMNT01_2690210 | False    | Blue   |           1523 |            107 |           -8 |          -23 |
-| ESPORTSTMNT01_2690210 | True     | Red    |          -1523 |           -107 |            8 |           23 |
-| ESPORTSTMNT01_2690219 | False    | Blue   |          -1619 |          -1763 |          -27 |          -22 |
-| ESPORTSTMNT01_2690219 | True     | Red    |           1619 |           1763 |           27 |           22 |
-| 8401-8401_game_1      | True     | Blue   |            nan |            nan |          nan |          nan |
+| gameid                | result   | side   |   golddiffat10 |   golddiffat15 |
+|:----------------------|:---------|:-------|---------------:|---------------:|
+| ESPORTSTMNT01_2690210 | False    | Blue   |           1523 |            107 |
+| ESPORTSTMNT01_2690210 | True     | Red    |          -1523 |           -107 |
+| ESPORTSTMNT01_2690219 | False    | Blue   |          -1619 |          -1763 |
+| ESPORTSTMNT01_2690219 | True     | Red    |           1619 |           1763 |
+| 8401-8401_game_1      | True     | Blue   |            nan |            nan |
 
-(Describe, in detail, the data cleaning steps you took and how they affected your analyses. The steps should be explained in reference to the data generating process. Show the head of your cleaned DataFrame)
+1. Since each game is represented with 12 rows (10 players and 2 teams), we dropped players rows to avoid double counting.
 
-There are bunch of columns that we don't need --> select only a few of them that are necessary for our analysis --> result column is consisted of 0 and 1 --> turn this into False and True
+2. Since all statistics from each game are recorded but we are only interested in gameid, result, side, golddiffat10, and golddiffat15, we only selected these columns.
 
-we aren't comparing specific position. thus, only need to look at team (raw data has rows for all 10 players and 2 teams per each game) --> only selected position == 'team'
+3. For result column, entries are either 0 for lose and 1 for win. We turned each 0 and 1 to False and True.
 
-## Univariate Analysis
+### Univariate Analysis
 
-<iframe src="assets/golddiffat10_univariate_dist.html" width=800 height=600 frameBorder=0></iframe>
+<iframe src="assets/golddiffat10_univariate_dist.html" width="100%" height=500 frameBorder=0></iframe>
 
-1-2 sentence explanation about the plot (describe and interpret any trends): normally distributed centered at 0, goes as high as about 9000 and low as about -9000
+It is a histogram of golddiffat10, and it's normally distributed and centered at 0. It goes up to 9000 and low to -9000. 
 
-## Bivariate Analysis
+### Bivariate Analysis
 
-<iframe src="assets/golddiffat10_side_bivariate_dist.html" width=800 height=600 frameBorder=0></iframe>
+<iframe src="assets/golddiffat10_side_bivariate_dist.html" width="100%" height=500 frameBorder=0></iframe>
 
-1-2 sentence explanation about the plot (describe and interpret any trends): both Blue and Red are centered around 0 but Blue's median is slightly right of 0 and Red's median is slightly left of 0. Several outliers exist in both Blue and Red. 50% of data points is within -1,000, and 1,000
+The plot contains two boxplots of golddiffat10 by Blue and Red team. Both are approximately centered at 0. However, Blue team's median is slightly right of 0, whereas Red team's median is slightly left of 0. Several outliers exist in both Blue and Red team, but Blue team's outliers are skewed more to the right than Red team's. 50% of data points are within -1,000 and 1,000.
 
-<iframe src="assets/golddiffat15_dist_by_hist.html" width=800 height=600 frameBorder=0></iframe>
+### Interesting Aggregates
 
-## Interesting Aggregates
+`team_lol.pivot_table(index='result', columns='side', values=feature, aggfunc='mean')`
 
 | result   |     Blue |      Red |
 |:---------|---------:|---------:|
 | Lose     | -632.109 | -743.577 |
 | Win      |  743.716 |  632.499 |
 
-explain its significance: 
+#### Significance: 
+If side does not affect golddiffat10, ith entry of two columns should be similar. But since they are not, it shows there might be a possibility that side affects golddiffat10.
 
-## NMAR Analysis
+## Assessment of Missingness
 
-State whether you believe there is a column in your dataset that is NMAR. Explain your reasoning and any additional data you might want to obtain that could explain the missingness (thereby making it MAR). Make sure to explicitly use the term “NMAR.”
+### NMAR Analysis
 
-## Missingness Dependency
+We believe 'url' column is NMAR because a game with lower popularity is less likely to have url. We thought this is a valid reason since people won't likely to search for not popular games. So if we can get amount of prize you get from winning or popularity of different entries in 'league' column, we might be able to explain the missingness.
 
-Present and interpret the results of your missingness permutation tests with respect to your data and question. Embed a plotly plot related to your missingness exploration; ideas include:
-• The distribution of column Y when column X is missing and the distribution of column Y when column X is not missing, as was done in Lecture 12.
-• The empirical distribution of the test statistic used in one of your permutation tests, along with the observed statistic.
+### Missingness Dependency
 
-<iframe src="assets/TVD_height0.14.html" width=800 height=600 frameBorder=0></iframe>
+<iframe src="assets/golddiffat10_missingness_on_game.html" width="100%" height=500 frameBorder=0></iframe>
 
-<iframe src="assets/TVD_height0.2.html" width=800 height=600 frameBorder=0></iframe>
+For each game number, golddiffat10's missingness changes. Thus, it seems like the missingness of golddiffat10 depends on game number.
+
+<iframe src="assets/TVD_height0.14.html" width="100%" height=500 frameBorder=0></iframe>
+
+Since the observed TVD is far right from the right end point of empirical distribution, we reject the null hypothesis. Thus, it suggests that the missingness of golddiffat10 depends on game value.
+
+---
+
+<iframe src="assets/golddiffat10_missingness_on_result.html" width="100%" height=500 frameBorder=0></iframe>
+
+For each result, golddiffat10's missingness does not change. Thus, it seems like result does not explain the missingness of golddiffat10.
+
+<iframe src="assets/TVD_height0.2.html" width="100%" height=500 frameBorder=0></iframe>
+
+Since the observed TVD is inside the empirical distribution, the area of the empirical distribution to the right of the observed TVD is greater than 0.05. Thus, we keep the null hypothesis, which suggests golddiffat10's missingness does not depend on result values.
 
 ## Hypothesis Testing
 
-Null hypothesis : Two sides (Blue and Red) should have about the same gold at 10 minutes since a game starts --> golddiffat10 (goldat10 - opp_goldat10) should have a mean of 0.
+### Null hypothesis : 
+We assume that two sides (Blue and Red) should have about the same gold at 10 minutes since a game starts. Thus, golddiffat10 should have a mean of 0.
 
-Alternative hypothesis : Blue side has more goldat10 --> golddiffat10's mean is larger than 0.
+### Alternative hypothesis : 
+golddiffat10's mean is larger than 0.
 
-test statistic : mean
+### Test statistic : 
+We chose mean as our test statistic because the distribution of golddiffat10 is roughly normal and we are comparing quantitative difference between two sides. Also, since we are specifically looking for 'larger than 0', we didn't use absolute value to keep direction.
 
-significance level : 0.01
+### Significance level : 
+0.01
 
-<iframe src="assets/Mean_height0.08.html" width=800 height=600 frameBorder=0></iframe>
+<iframe src="assets/Mean_height0.2.html" width="100%" height=500 frameBorder=0></iframe>
 
-resulting p-value : 0.0
+### Resulting p-value : 
+0.0
 
-conclusion : Since p-value (0.0) is less than <0.05, we reject the null hypothesis --> this suggests that the Blue side has more goldat10 than the Red side
-
-Justify why these choices are good choices for answering the question you are trying to answer:
+### Conclusion : 
+Since p-value (0.0) is less than 0.01, we reject the null hypothesis. This suggests that the Blue side has more goldat10 than the Red side. 
